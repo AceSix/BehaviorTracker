@@ -30,7 +30,7 @@ function drawmap(data){
 
             // Add a circle.
             marker.append("circle")
-                .attr("r", 4.5)
+                .attr("r", function(d){ return d.num*0.5 })
                 .attr("cx", padding)
                 .attr("cy", padding);
 
