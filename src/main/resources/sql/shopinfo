@@ -1,0 +1,4 @@
+select a.shopid , b.shopname , a.latitude  as lat, a.longitude as lng  FROM shoplocation a inner join shopinfo b
+on a.shopid = b.shopid
+where a.shopid  in (select destination from competition where origin = "66624941")  or a.shopid = "66624941"
+group by a.shopid

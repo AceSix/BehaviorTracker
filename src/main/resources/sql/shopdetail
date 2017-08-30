@@ -1,0 +1,5 @@
+SELECT shopid , shopname , MAX(commentTime)  AS maxtime, MIN(commentTime)  AS mintime, COUNT(*)  AS orders
+FROM shopcomment WHERE shopid IN (SELECT destination FROM competition WHERE origin = '66940137'  )
+ AND  commentTime >= "2015-01-01"
+ AND  commentTime <= "2017-06-31"
+ GROUP BY shopid

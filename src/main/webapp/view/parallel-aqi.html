@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+   <head>
+       <meta charset="utf-8">
+   </head>
+   <body style="height: 100%; margin: 0">
+       <div id="container" style="height: 50%"></div>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/echarts-all-3.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts-stat/ecStat.min.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/extension/dataTool.min.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/map/js/china.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/map/js/world.js"></script>
+       <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=ZUONbpqGBsYGXNIYHicvbAbM"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/extension/bmap.min.js"></script>
+       <script src="../js/jquery/jquery.min.js"></script>
+       <script type="text/javascript">
+
+           //获取项目的根目录
+           var localObj = window.location;
+           var contextPath = localObj.pathname.split("/")[1];
+           var basePath = "/"+contextPath;
+           var server_context=basePath;
+           var origin ="66940137";
+           //    var data =[ [["2015/12/02",0.1],["2016/01/02",0.1]],[["2015/06/02",0.2],["2015/08/02",0.2]]];
+           $.ajax({
+               type: "post",
+               url: server_context + "/shopdetail?shopid="+origin,
+               dataType: "json",
+               error: function () {
+                   console.log("erro");
+               },
+               success: function (data) {
+                    console.log("success");
+                    var convertedData = converteData_time(data) ;
+                    drawParallel( convertedData );
+               }});
+
+          var converteData_time = function( data ){
+               var res = [];
+               for( var i = 0 ; i < data.length ; i++ ){
+                   res.push( [ toDate(data[i].mintime) , toDate(data[i].maxtime) ] );
+               }
+               return res;
+           }
+           function toDate(v) {
+               var date = new Date();
+               date.setTime(v.time);
+               var y = date.getFullYear();
+               var m = date.getMonth()+1;
+               m = m<10?'0'+m:m;
+               var s = date.getSeconds();
+               var d = date.getDate();
+               d = d<10?("0"+d):d;
+               var h = date.getHours();
+               h = h<10?("0"+h):h;
+               var M = date.getMinutes();
+               M = M<10?("0"+M):M;
+               var S = date.getSeconds();
+               S = S<10?("0"+S):s;
+               var str = y+"-"+m+"-"+d+" "+h+":"+M+":"+S;
+               return new Date(str);
+           }
+
+            function drawParallel(data){
+
+                    var dom = document.getElementById("container");
+                    var myChart = echarts.init(dom);
+                    var app = {};
+                    option = null;
+                    // Schema:
+                    // date1,date2
+//                    var data = [
+//                        [new Date('2014-05-30'),new Date('2015-08-13')],
+//                        [new Date('2015-01-30'),new Date('2015-09-13')],
+//                        [new Date('2015-12-30'),new Date('2016-05-13')]
+//                    ];
+
+                    var schema = [
+                        {name: 'date1', index: 0, text: '开始日期'},
+                        {name: 'date2', index: 1, text: '结束日期'},
+                    ];
+
+                    var lineStyle = {
+                        normal: {
+                            width: 2,
+                            opacity: 0.5,
+                            color:'#fb767b'
+                        }
+                    };
+                    option = {
+//                        backgroundColor: '#333',
+                        legend: {
+                            bottom: 30,
+                            data: ['上海'],
+                            itemGap: 5,
+                            textStyle: {
+                                color: '#222',
+                                fontSize: 14
+                            }
+                        },
+                        parallelAxis: [
+                            {dim: 0, name: schema[0].text, type:'time'},
+                            {dim: 1, name: schema[1].text, type:'time'}
+                        ],
+                        visualMap: {
+                            show: true,
+                            min: 0,
+                            max: 150,
+                            dimension: 2,
+                            inRange: {
+                                color: ['#fb767b'].reverse(),
+                            }
+                        },
+                        parallel: {
+                            left: '5%',
+                            right: '65%',
+                            bottom: 100,
+                            layout:'vertical',
+                            parallelAxisDefault: {
+                                type: 'time',
+                                name: 'date',
+                                nameLocation: 'end',
+                                nameGap: 20,
+                                nameTextStyle: {
+                                    color: '#fff',
+                                    fontSize: 12
+                                },
+                                min : new Date('2015-01-01'),
+                                max : new Date('2017-06-31'),
+                                splitLine: {
+                                    show: false
+                                },
+                                axisLabel: {
+                                    textStyle: {
+                                        color: '#2a333d'
+                                    }
+                                }
+                            }
+                        },
+                        series: [
+                            {
+                                name: '上海',
+                                type: 'parallel',
+                                lineStyle: lineStyle,
+                                data: data
+                            }
+                        ]
+                    };
+                    if (option && typeof option === "object") {
+                        myChart.setOption(option, true);
+                        console.log( "draw done" );
+            }
+}
+       </script>
+   </body>
+</html>

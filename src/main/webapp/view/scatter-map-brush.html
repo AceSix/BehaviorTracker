@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+   <head>
+       <meta charset="utf-8">
+   </head>
+   <body style="height: 100%; margin: 0">
+        <div id="main" style="height:100%;"></div>
+        <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/echarts-all-3.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts-stat/ecStat.min.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/extension/dataTool.min.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/map/js/china.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/map/js/world.js"></script>
+       <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=ZUONbpqGBsYGXNIYHicvbAbM"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/extension/bmap.min.js"></script>
+       <script type="text/javascript" src="../js/echarts/map/china.js"></script>
+       <script type="text/javascript" src="../js/jquery/jquery.min.js"></script>
+       <script type="text/javascript">
+           //获取项目的根目录
+           var localObj = window.location;
+           var contextPath = localObj.pathname.split("/")[1];
+           var basePath = "/"+contextPath;
+           var server_context=basePath;
+
+            $.ajax({
+                type: "post",
+                url: server_context + "/shoplocation",
+                dataType: "json",
+                error: function () {
+                    console.log("erro");
+                },
+                success: function (geodata) {
+                    console.log( "success" );
+                    drawmap(geodata);
+                }
+            });
+         function drawmap(geodata) {
+             var dom = document.getElementById("main");
+             var myChart = echarts.init(dom);
+             var app = {};
+             var option = null;
+
+             $.get('../data/map/shanghai.json', function (shanghaiJson) {
+                 echarts.registerMap('shanghai', shanghaiJson);
+
+                 //   转化成 组件可以识别的data
+                 var converteData = function (geodata) {
+                     var res = [];
+                     for (var i = 0; i < geodata.length; i++) {
+                         res.push({
+                             shopid: geodata[i].shopid,
+                             shopname: geodata[i].shopname,
+                             value: [geodata[i].longitude, geodata[i].latitude]
+                         });
+                     }
+                     return res;
+                 };
+
+                 var convertedData=converteData(geodata);
+                 option = {
+                     backgroundColor: '#404a59',
+                     animation: true,
+                     animationDuration: 1000,
+                     animationEasing: 'cubicInOut',
+                     animationDurationUpdate: 1000,
+                     animationEasingUpdate: 'cubicInOut',
+                     title: [
+                         {
+                             text: '上海店铺',
+                             subtext: 'data from dianping.com',
+                             sublink: 'www.dianping.com',
+                             left: 'center',
+                             textStyle: {
+                                 color: '#fff'
+                             }
+                         },
+                         {
+                             id: 'statistic',
+                             right: 120,
+                             top: 40,
+                             width: 100,
+                             textStyle: {
+                                 color: '#fff',
+                                 fontSize: 16
+                             }
+                         }
+                     ],
+                     toolbox: {
+                         iconStyle: {
+                             normal: {
+                                 borderColor: '#fff'
+                             },
+                             emphasis: {
+                                 borderColor: '#b1e4ff'
+                             }
+                         }
+                     },
+                     brush: {
+                         outOfBrush: {
+                             color: '#abc'
+                         },
+                         brushStyle: {
+                             borderWidth: 2,
+                             color: 'rgba(0,0,0,0.2)',
+                             borderColor: 'rgba(0,0,0,0.5)',
+                         },
+                         seriesIndex: 0,
+                         throttleType: 'debounce',
+                         throttleDelay: 300,
+                         geoIndex: 0
+                     },
+                     geo: {
+                         map: 'shanghai',
+                         center: [121.5025, 31.237015],
+                         zoom: 2.5,
+                         label: {
+                             normal:{
+                                 show: true,
+                                 textStyle : {
+                                     fontSize : 15 ,
+                                     color : '#fff' ,
+
+                                 }
+                             },
+                             emphasis: {
+                                 show: false,
+                                 textStyle : {
+                                     fontSize : 60 ,
+                                     color : '#fff' ,
+                                     fontWeight : 'bolder'
+                                 }
+                             }
+                         },
+                         roam: true,
+                         itemStyle: {
+                             normal: {
+                                 areaColor: '#323c48',
+                                 borderColor: '#111'
+                             },
+                             emphasis: {
+                                 areaColor: '#2a333d'
+                             }
+                         }
+                     },
+                     tooltip: {
+                         trigger: 'item',
+                         formatter: function (params) {
+                             return params.data.shopid + ':' + params.data.shopname ;
+                         }
+                     },
+                     series: [
+                         {
+                             name: 'shopname',
+                             type: 'scatter',
+                             coordinateSystem: 'geo',
+                             data: convertedData,
+                             symbolSize: 8,
+                             label: {
+                                 normal: {
+                                     formatter: '{b}',
+                                     position: 'right',
+                                     show: false
+                                 },
+                                 emphasis: {
+                                     show: true
+                                 }
+                             },
+                             itemStyle: {
+                                 normal: {
+                                     color: '#ddb926'
+                                 }
+                             }
+                         }
+                     ]
+                 }
+
+
+
+                 myChart.on('brushselected', renderBrushed);
+
+                 myChart.setOption(option);
+//                 setTimeout(function () {
+//                     myChart.dispatchAction({
+//                         type: 'brush',
+//                         areas: [
+//                             {
+//                                 geoIndex: 0,
+//                                 brushType: 'polygon',
+//                                 coordRange:[[121.469,31.3158],[121.4676,31.3062],[121.4635,31.3062],[121.4648,31.2973],[121.4607,31.2897],[121.4621,31.2788],[121.4703,31.2671],[121.4799,31.2589],[121.4813,31.2506],[121.4799,31.2499],[121.4827,31.2424],[121.4799,31.2403],[121.4745,31.2417],[121.4703,31.2389],[121.4635,31.2417],[121.458,31.2383],[121.4497,31.2431],[121.4484,31.2444],[121.4511,31.2499],[121.4497,31.2582],[121.4429,31.2671],[121.4291,31.2746],[121.425,31.2705],[121.425,31.2794],[121.4223,31.2843],[121.4236,31.2911],[121.4195,31.2911],[121.4182,31.2932],[121.4195,31.2966],[121.4264,31.2987],[121.4264,31.3035],[121.4319,31.3035],[121.4319,31.3097],[121.4346,31.3131],[121.4333,31.3186],[121.4333,31.3206],[121.447,31.3206],[121.4484,31.3172],[121.4621,31.3213],[121.4676,31.3206],[121.469,31.3158]]
+//                             }
+//                         ]
+//                     });
+//                 }, 0);
+                 function renderBrushed(params) {
+                     var selectedItems = "";
+                     //    输出这些点的坐标
+                     var mainSeries = params.batch[0].selected[0];
+                     for (var i = 0; i < mainSeries.dataIndex.length; i++) {
+                         var rawIndex = mainSeries.dataIndex[i];
+                         var dataitem = convertedData[rawIndex].shopid;
+                         selectedItems +=  dataitem + ",";
+                     }
+
+                     $.ajax({
+                         type: "post",
+                         url: server_context + "/shoplocation?shops="+selectedItems,
+                         dataType: "json",
+                         error: function () {
+                             console.log("erro");
+                         },
+                         success: function () {
+                             console.log( "backstage success" );
+
+                         }
+                     });
+
+                 };
+//             if (option && typeof option === "object") {
+//                 myChart.setOption(option, true);
+//             }
+             })
+         }
+
+
+
+       </script>
+   </body>
+</html>

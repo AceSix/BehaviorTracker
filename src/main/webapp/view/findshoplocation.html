@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style type="text/css">
+        body, html,#allmap {width: 100%;height: 100%;overflow: hidden;margin:0;font-family:"微软雅黑";}
+        #l-map{height:100%;width:78%;float:left;border-right:2px solid #bcbcbc;}
+        #r-result{height:100%;width:20%;float:left;}
+    </style>
+    <title>Title</title>
+</head>
+
+<body>
+<div id="allmap"></div>
+<script src="../js/d3_v4/d3.js"></script>
+<script src="../js/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=Nhtsun0hGCNKmEcTFe5o9MfPsk1o2ixn"></script>
+<script>
+    //获取项目的根目录
+    var localObj = window.location;
+    var contextPath = localObj.pathname.split("/")[1];
+    var basePath = "/"+contextPath;
+    var server_context=basePath;
+
+    var map = new BMap.Map("allmap");
+    var point = new BMap.Point(116.404, 39.915);
+    map.centerAndZoom(point, 12);
+    map.enableScrollWheelZoom();
+
+    //特定配送点
+    address=[{'name':'比萨家族（天通苑店）','latitude':'40.0654569182409','longitude':'116.4033058302324'}
+       //,{'name':'比萨家族（上地店）','latitude':'40.03657100926278','longitude':'116.3119732437155'}
+        ,{'name':'比萨家族（回龙观店）','latitude':'40.0788417449324','longitude':'116.3053793623122'}
+    ]
+    address.forEach(function(item){
+            var point = new BMap.Point(item.longitude, item.latitude);
+            addMarker(point,item.name);
+
+        }
+    )
+
+
+    function addMarker(point,info){
+        var marker = new BMap.Marker(point);
+        map.addOverlay(marker);// // 将标注添加到地图中
+        var opts = {
+            position : point,    // 指定文本标注所在的地理位置
+            offset   : new BMap.Size(30, -30)    //设置文本偏移量
+        }
+        var label = new BMap.Label(info, opts);
+        label.setStyle({
+            color : "red",
+            fontSize : "12px",
+            height : "20px",
+            lineHeight : "20px",
+            fontFamily:"微软雅黑"
+        });
+        map.addOverlay(label);
+    }
+
+
+
+
+
+
+</script>
+</body>
+</html>

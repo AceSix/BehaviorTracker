@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        #container{
+            padding : 40px;
+        }
+        #punchcard{
+            padding : 20px ;
+        }
+    </style>
+</head>
+<body>
+
+<div id="container" style="height: 100%;" >
+    <div>
+        <svg width="40"  height = "40" transform="translate(0,15)"><g ><circle r="10" cx="20" cy = "20" fill="#af6188" ></circle></g></svg>
+        <input type="text" name="origin" id = "origin"  >
+    </div>
+
+  <div id="themeRiver" style="height: 800px"></div>
+
+</div>
+<script src="../js/d3_v4/d3.js"></script>
+<script type="text/javascript" src="../js/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../js/util/getservercontext.js"></script>
+<script type="text/javascript" src="../js/util/objectToDate.js"></script>
+<script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/echarts-all-3.js"></script>
+<script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts-stat/ecStat.min.js"></script>
+<script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/extension/dataTool.min.js"></script>
+<script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/map/js/china.js"></script>
+<script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/map/js/world.js"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=ZUONbpqGBsYGXNIYHicvbAbM"></script>
+<script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/extension/bmap.min.js"></script>
+<script>
+    var dom = document.getElementById("themeRiver");
+    var myChart = echarts.init(dom);
+    var app = {};
+    var option = null;
+    var origin = "66940137";
+    var orderlist = function( data ){
+        var result = [];
+        for(var i = 0 ; i < data.orderlist.length ; i++){
+            var temp =data.orderlist[i];
+            result.push([toDate(temp.days) , temp.num , temp.shopid]);
+        }
+        return result;
+    }
+
+    var typelist = function( data ){
+        var result = [];
+        for(var i = 0 ; i < data.typelist.length ; i++){
+            var temp =data.typelist[i];
+            result.push( temp.destination);
+        }
+        return result;
+    }
+
+    $.ajax({
+        type: "post",
+        url: server_context + "/discoveryriver?params=" + origin ,
+        dataType: "json",
+        error: function () {
+            console.log("erro");
+        },
+        success: function (rawdata) {
+            console.log( "success" );
+            console.log( "data:" , rawdata);
+            drawPic(rawdata,origin);
+        }
+    });
+
+   function search(){
+       origin = $("#origin").val();
+       //update the option data
+        $.ajax({
+            type: "post",
+            url: server_context + "/discoveryriver?params=" + origin ,
+            dataType: "json",
+            error: function () {
+                console.log("erro");
+            },
+            success: function (rawdata) {
+
+                console.log( "success" );
+                option.series[0].data = orderlist(rawdata) ;
+                myChart.setOption( option );
+
+            }
+        });
+   }
+
+    function drawPic(data,origin) {
+       console.log( orderlist(data) , typelist(data));
+
+        option = {
+
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'line',
+                    lineStyle: {
+                        color: 'rgba(0,0,0,0.2)',
+                        width: 1,
+                        type: 'solid'
+                    }
+                }
+            },
+
+            legend: {
+                data: typelist(data)
+            },
+
+            singleAxis: {
+                top: 50,
+                bottom: 50,
+                axisTick: {},
+                axisLabel: {},
+                type: 'time',
+                axisPointer: {
+                    animation: true,
+                    label: {
+                        show: true
+                    }
+                },
+                splitLine: {
+                    show: true,
+                    lineStyle: {
+                        type: 'dashed',
+                        opacity: 0.2
+                    }
+                }
+            },
+
+            series: [
+                {
+                    type: 'themeRiver',
+                    itemStyle: {
+                        emphasis: {
+                            shadowBlur: 20,
+                            shadowColor: 'rgba(0, 0, 0, 0.8)'
+                        }
+                    },
+                    data: orderlist(data)
+                }]
+        }
+        if (option && typeof option === "object") {
+            myChart.setOption(option, true);
+        }
+    }
+
+
+</script>
+
+</body>
+</html>

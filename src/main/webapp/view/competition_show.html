@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="../css/bootstrap/bootstrap.css" rel="stylesheet">
+    <script src="../js/jquery/jquery.min.js"></script>
+    <script src="../bootstrap/js/bootstrap.js"></script>
+<style>
+
+    #rightcolumn{
+        height:800px;
+        float: left;
+        margin-top: 100px;
+    }
+</style>
+
+    <title>Title</title>
+</head>
+<body>
+<div id="main" style="float:left" >
+<svg></svg>
+</div>
+<div id="rightcolumn"  >
+<div class="dropdown" >
+    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+        Catergory
+        <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+        <li><a href="#">Coffee</a></li>
+        <li><a href="#">Book</a></li>
+        <li><a href="#">Restaurant</a></li>
+    </ul>
+</div>
+    <div id="beeswarm"></div>
+</div>
+<script src="../js/d3_v4/d3.js"></script>
+<script src="../js/takeaway/fillCircleColor.js"></script>
+<script src="../js/takeaway/beeswarm.js"></script>
+<script src="../js/util/readFile.js"></script>
+<script>
+    //获取项目的根目录
+    var localObj = window.location;
+    var contextPath = localObj.pathname.split("/")[1];
+    var basePath = "/"+contextPath;
+    var server_context=basePath;
+
+    var width=800,height=800;
+    var svg = d3.select("body").select("#main").select("svg")
+        .attr("width",width)
+        .attr("height",height);
+    var dw=width/2;
+    var dh=height/2;
+
+    //    外围圆
+    var round1=svg.append("g");
+    var radius1=200;
+    round1.append("circle")
+        .attr("cx",dw)
+        .attr("cy",dh)
+        .attr("r",radius1)
+        .attr("stroke","grey")
+        .attr("fill","transparent");
+
+
+    var round2=svg.append("g");
+    var radius2=250;
+    round2.append("circle")
+        .attr("cx",dw)
+        .attr("cy",dh)
+        .attr("r",radius2)
+        .attr("stroke","grey")
+        .attr("fill","transparent");
+    var round3=svg.append("g");
+    var radius3=300;
+    round3.append("circle")
+        .attr("cx",dw)
+        .attr("cy",dh)
+        .attr("r",radius3)
+        .attr("stroke","grey")
+        .attr("fill","transparent")
+
+    //    中心
+    var center=svg.append("g");
+    var outerRadius = 80;
+    var pie1 = d3.pie().value(function(d) { return d.num; })
+        .startAngle(Math.PI)
+        .endAngle(Math.PI*2)
+        .padAngle(0.08);
+    var pie2= d3.pie().value(function(d) { return d.num; })
+        .startAngle(0)
+        .endAngle(Math.PI)
+        .padAngle(0.05);
+    var shopid="76383406";
+    $.ajax({
+        type: "post",
+        url: server_context+"/shopcompetition?shopid="+shopid,
+        dataType: "json",
+        error: function(){console.log("erro");},
+        success:function(data) {
+            drawCooperationCircle(data.cooperation,outerRadius,center,dw,dh);
+            drawCompetitionCircle(data.competition,outerRadius,center,dw,dh);
+            drawSurrouding(data.cooperation);
+            drawSurrouding(data.competition);
+            shopClick(data.cooperation,data.competition);
+            shopMouseover(data.cooperation,data.competition);
+        }});
+//    for shopcompetition version1.0
+//    resp.setContentType("text/html;charset=utf-8");
+//    resp.setCharacterEncoding("utf-8");
+//    String shopid = req.getParameter("shopid");
+//    //        System.out.print(shopid);
+//    List<Map<String,Object>> shopCompetitionList = competitionService.getCompetitionList(shopid);
+//    List<Map<String,Object>> shopCooperationList = competitionService.getCooperationList(shopid);
+//    JSONArray jsonList1 = JSONArray.fromObject(shopCompetitionList);
+//    JSONArray jsonList2 = JSONArray.fromObject(shopCooperationList);
+//    JSONObject jsontemp=new JSONObject();
+//    jsontemp.put("competition",jsonList1);
+//    jsontemp.put("cooperation",jsonList2);
+//    //        json.put(shopid,jsontemp);
+//    //        get(shopCompetitionList);
+//    //        get(shopCooperationList);
+//    PrintWriter out= null;
+//    out = resp.getWriter();
+//    out.print( jsontemp );
+//    out.flush();
+//    out.close();
+//    $.when(
+//        getCsv("../data/competition_show.csv"), // please pass csv url as you like
+//        getCsv("../data/cooperation_show.csv") // please pass csv url as you like
+//    ).done(function (competition,cooperation) {
+//        drawCooperationCircle(cooperation,outerRadius,center,dw,dh);
+//        drawCompetitionCircle(competition,outerRadius,center,dw,dh);
+//        drawSurrouding(cooperation);
+//        drawSurrouding(competition);
+//        shopClick(cooperation,competition);
+//        shopMouseover(cooperation,competition);
+//    }).fail(function (err) {
+//        console.log(err);
+//    });
+    function shopClick(cooperation,competition){
+        //显示这家店铺的竞争态势
+        cooperation.forEach(function(d){
+            d3.select("#center"+d.shopid).on("click",function(){
+
+            var dw=$("#dot"+d.shopid).find("circle").attr("cx");
+            var dh=$("#dot"+d.shopid).find("circle").attr("cy");
+            var center=d3.select("#dot"+d.shopid);
+            var outerRadius=30;
+//            js 数据需要和后台交互获取
+                $.ajax({
+                    type: "post",
+                    url: server_context+"/shopcompetition?shopid="+d.shopid,//shopid把前台数据传到后台
+                    dataType: "json",
+                    error: function(){console.log("erro");},
+                    success:function(data) {                 //获取后台数据
+                        drawCooperationCircle(data.cooperation,outerRadius,center,dw,dh);
+                        drawCompetitionCircle(data.competition,outerRadius,center,dw,dh);
+
+                    }
+                });
+
+            });
+        })
+        competition.forEach(function(d){
+            d3.select("#center"+d.shopid).on("click",function(){
+                var dw=$("#dot"+d.shopid).find("circle").attr("cx");
+                var dh=$("#dot"+d.shopid).find("circle").attr("cy");
+                var center=d3.select("#dot"+d.shopid);
+                var outerRadius=30;
+//               数据需要和后台交互获取
+                $.ajax({
+                    type: "post",
+                    url: server_context+"/shopcompetition?shopid="+d.shopid,
+                    dataType: "json",
+                    error: function(){console.log("erro");},
+                    success:function(data) {
+                        drawCooperationCircle(data.cooperation,outerRadius,center,dw,dh);
+                        drawCompetitionCircle(data.competition,outerRadius,center,dw,dh);
+
+                    }
+                });
+            });
+        })
+
+
+    }
+    function shopMouseover(cooperation,competition){
+        //        店铺的竞争网络；后台交互数据 x2,y2
+        competition.forEach(function(d){
+            d3.select("#center"+d.shopid)
+                .on("mouseover",function(){
+                var x1=$("#dot"+d.shopid).find("circle").attr("cx");
+                var y1=$("#dot"+d.shopid).find("circle").attr("cy");
+                var x2=$("#dot21270425").find("circle").attr("cx");
+                var y2=$("#dot21270425").find("circle").attr("cy");
+                d3.select("#dot"+d.shopid).append("path")
+                    .attr("class","line")
+                    .attr("d","M"+x1+","+y1+"L"+x2+","+y2)
+                    .attr("stroke","blue");
+            })
+                .on("mouseout",function(){
+                    d3.select("#dot"+d.shopid).selectAll(".line").attr("d",null)
+                })
+        })
+        cooperation.forEach(function(d){
+            d3.select("#center"+d.shopid)
+                .on("mouseover",function(){
+                    var x1=$("#dot"+d.shopid).find("circle").attr("cx");
+                    var y1=$("#dot"+d.shopid).find("circle").attr("cy");
+                    var x2=$("#dot21270425").find("circle").attr("cx");
+                    var y2=$("#dot21270425").find("circle").attr("cy");
+                    d3.select("#dot"+d.shopid).append("path")
+                        .attr("class","line")
+                        .attr("d","M"+x1+","+y1+"L"+x2+","+y2)
+                        .attr("stroke","blue");
+                })
+                .on("mouseout",function(){
+                    d3.select("#dot"+d.shopid).selectAll(".line").attr("d",null)
+                })
+        })
+    }
+
+
+
+    function drawSurrouding(data){
+        data.forEach(function (d) {
+            if(d.distance<5500) drawCircle(1,d);
+            else{
+                if(d.distance<8500) drawCircle(2,d);
+                else drawCircle(3,d);
+            }
+        })
+    }
+    function drawCompetitionCircle(data,outerRadius,center,dw,dh){
+        pie1(data).forEach(function(d){
+            var x1=outerRadius*Math.cos(d.startAngle);
+            var y1=outerRadius*Math.sin(d.startAngle);
+            var x2=outerRadius*Math.cos(d.endAngle-d.padAngle);
+            var y2=outerRadius*Math.sin(d.endAngle-d.padAngle);
+            var t1=center.append("g").attr("id","center"+d.data.shopid);
+            t1.append("path")
+                .attr("transform","translate("+dw+","+dh+")")
+                .attr("d","M"+x1+","+y1+"A"+outerRadius+","+outerRadius+",0,0,1,"+x2+","+y2+"Q-10,"+(outerRadius*(-0.8))+",0,"+(outerRadius*(-0.3))+"Q-10,"+(outerRadius*(-0.8))+","+x1+","+y1)
+                .attr("stroke",fillCircleColor(d.data.cateid))
+                .attr("fill",fillCircleColor(d.data.cateid));
+            t1.append("title")
+                .text(d.data.shopname);
+        })
+    }
+    function drawCooperationCircle(data,outerRadius,center,dw,dh){
+            pie2(data).forEach(function(d){
+                var x1=outerRadius*Math.cos(d.startAngle);
+                var y1=outerRadius*Math.sin(d.startAngle);
+                var x2=outerRadius*Math.cos(d.endAngle-d.padAngle);
+                var y2=outerRadius*Math.sin(d.endAngle-d.padAngle);
+                var t2=center.append("g").attr("id","center"+d.data.shopid);
+                t2.append("path")
+                    .attr("transform","translate("+dw+","+dh+")")
+                    .attr("d","M"+x1+","+y1+"A"+outerRadius+","+outerRadius+",0,0,1,"+x2+","+y2+"Q-10,"+(outerRadius*(0.8))+",0,"+(outerRadius*(0.3))+"Q-10,"+(outerRadius*(0.8))+","+x1+","+y1)                .attr("stroke",fillCircleColor(d.data.cateid))
+                    .attr("fill",fillCircleColor(d.data.cateid));
+                t2.append("title")
+                    .text(d.data.shopname);
+            })
+    }
+
+    function drawCircle(i,d){
+        //随机数之间的距离要变大？？？？
+        var angle=Math.random() * (Math.PI*2);
+        eval("round"+i).append("g")
+            .attr("transform","translate("+dw+","+dh+")")
+            .attr("id","dot"+d.shopid)
+            .append("circle")
+            .attr("cx",(eval("radius"+i))*Math.cos(angle))
+            .attr("cy",(eval("radius"+i))*Math.sin(angle))
+            .attr("r",10)
+            .attr("fill",fillCircleColor(d.cateid));
+//        console.log(d3.select("g"));
+    }
+
+</script>
+</body>
+</html>

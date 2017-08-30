@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0，minimum-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="../bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <script type="text/javascript" src="../js/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="../js/util/screen.js"></script>
+    <script type="text/javascript">
+        $(function() {
+            var svgRootDom = $("#sketchpad")[0];
+            adjustToFreezeWidth(svgRootDom);
+        });
+
+    </script>
+    <title>coffee</title>
+    <style>
+
+    </style>
+</head>
+<body>
+
+<div class="container-fluid" style="margin: 5% 5%" >
+    <div class="row">
+        <div class="col-md-12">
+            <div class="row">
+                <div class="col-md-3">
+                      <img src="coffee1.png" class="img-responsive"/>
+                </div>
+                <div class="col-md-6">
+                    <div class="row" >
+                        <div class="col-md-12" >
+                            <img src="coffee1-name.png" class="img-responsive">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <svg  id="sketchpad"  preserveAspectRatio="xMinYMin meet" viewBox="0,0,3000,3000">
+                                <g transform="translate(10,50)">
+                                    <g transform="translate(40,20)">
+                                        <text x = "30" y = "100" font-size = "25">意式浓缩咖啡</text>
+                                        <circle cx="100" cy="100"  r="100" fill="#e2650a" opacity="0.3"  ></circle>
+                                    </g>
+                                    <g transform="translate(220,20)">
+                                        <text x = "30" y = "100" font-size = "25">250毫升牛奶</text>
+                                        <circle cx="100" cy="100"  r="100" fill="#e2650a" opacity="0.5"  ></circle>
+                                    </g>
+                                    <g transform="translate(140,150)">
+                                        <text x = "70" y = "100" font-size = "25">冰块</text>
+                                        <circle cx="100" cy="100"  r="50" fill="#74c4e4" opacity="0.5"  ></circle>
+                                    </g>
+                                    <g transform="translate(250,220)">
+                                        <text x = "10" y = "100" font-size = "25">两到三大勺蜂蜜</text>
+                                        <circle cx="100" cy="100"  r="100" fill="#74c4e4" opacity="0.2"  ></circle>
+                                    </g>
+                                    <g transform="translate(30,220)">
+                                        <text x = "10" y = "100" font-size = "25">两大勺巧克力糖浆</text>
+                                        <circle cx="100" cy="100"  r="100" fill="#e2650a" opacity="0.4"  ></circle>
+                                    </g>
+                                </g>
+                                <g transform="translate(480,100)">
+
+                                    <text x="0" y="15" fill="#74c4e4" transform="rotate(90 40,20)"  font-size="60">
+                                        It's truly summer
+                                    </text></g>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

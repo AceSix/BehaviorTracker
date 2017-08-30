@@ -1,0 +1,82 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <title>showMap</title>
+    <style type="text/css">
+        .circle{
+            fill:#000;
+        }
+
+    </style>
+</head>
+<body>
+
+<script src="../js/d3_v4/d3.js"></script>
+<script src="../js/jquery/jquery.min.js"></script>
+
+<script >
+    var width=1020, height=960
+    var svg = d3.select("body").append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+//地图投影比例
+    var projection = d3.geoMercator()
+        .center([116.35911605504, 39.9930491523981])
+        .scale(52050)
+        .translate([width/2, height/2]);
+
+    var path = d3.geoPath()
+        .projection(projection);
+   var color =  d3.scaleOrdinal(d3.schemeCategory20);
+//北京地图
+    d3.json("../data/beijing.json", function(error, root) {
+
+        if (error)
+            return console.error(error);
+        console.log(root.features);
+
+        svg.append("g")
+            .selectAll("path")
+            .data( root.features )
+            .enter()
+            .append("path")
+            .attr("stroke","#000")
+            .attr("stroke-width",1)
+            .attr("fill", "#efefdf")
+            .attr("d", path )
+            .append("title")
+            .text(function(d){return d.properties.name})
+            .on("mouseover",function(d,i){
+                d3.select(this)
+                    .attr("fill","yellow");
+            })
+            .on("mouseout",function(d,i){
+                d3.select(this)
+                    .attr("fill","#efefdf");
+            });
+
+        //标注某一个点
+        var cc=projection([116.35911605504, 39.9930491523981]);
+        svg.append("g")
+            .append("circle")
+            .attr("class","circle")
+            .attr("cx",cc[0])
+            .attr("cy",cc[1])
+            .attr("r",2)
+
+    });
+
+
+
+
+
+
+
+</script>
+
+</body>
+</html>

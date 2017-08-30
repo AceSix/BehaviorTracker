@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+   <head>
+       <meta charset="utf-8">
+   </head>
+   <body style="height: 100%; margin: 0">
+       <div id="container" style="height: 100%"></div>
+       <script src="../js/jquery/jquery.min.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/echarts-all-3.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts-stat/ecStat.min.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/extension/dataTool.min.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/map/js/china.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/map/js/world.js"></script>
+       <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=ZUONbpqGBsYGXNIYHicvbAbM"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/extension/bmap.min.js"></script>
+       <script type="text/javascript">
+           //获取项目的根目录
+           var localObj = window.location;
+           var contextPath = localObj.pathname.split("/")[1];
+           var basePath = "/"+contextPath;
+           var server_context=basePath;
+
+            var dom = document.getElementById("container");
+            var myChart = echarts.init(dom);
+            var app = {};
+            option = null;
+            app.title = '热力图与百度地图扩展';
+            $.ajax({
+            type: "post",
+            url: server_context+"/shoplocation",
+            dataType: "json",
+            error: function(){console.log("erro");},
+            success:function(data) {
+            //$.get('../data/hangzhou-tracks.json', function (data) {
+
+            var points=[];
+            data.map(function(item) {
+                var res = [];
+                if( item.shopOpenStatus == false ){
+                    res.push(item.longitude);
+                    res.push(item.latitude);
+                    res.push(1);
+                    points.push(res);
+                }
+            });
+            myChart.setOption(option = {
+                animation: false,
+                bmap: {
+                    center: [121.5025,31.237015],
+                    zoom: 12,
+                    roam: true
+                },
+                visualMap: {
+                    show: false,
+                    top: 'top',
+                    min: 0,
+                    max: 4,
+                    seriesIndex: 0,
+                    calculable: true,
+                    inRange: {
+                        color: ['blue','blue', 'green', 'yellow', 'red']
+                    }
+                },
+
+
+                series: [{
+                    type: 'heatmap',
+                    coordinateSystem: 'bmap',
+                    data: points,
+                    pointSize: 5,
+                    blurSize: 6
+                }]
+            });
+            if (!app.inNode) {
+                // 添加百度地图插件
+                var bmap = myChart.getModel().getComponent('bmap').getBMap();
+                bmap.addControl(new BMap.MapTypeControl());
+            }
+            }
+            });
+
+            if (option && typeof option === "object") {
+            myChart.setOption(option, true);
+}
+       </script>
+   </body>
+</html>

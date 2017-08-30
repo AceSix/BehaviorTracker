@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<head>
+    <link type="text/css" rel="stylesheet" href="../css/style.css"/>
+    <style type="text/css">
+
+        #states path {
+            /*fill: #ccc;*/
+            stroke: #fff;
+            fill-opacity: 0.5;
+        }
+
+        /*path.arc {*/
+            /*pointer-events: none;*/
+            /*fill: none;*/
+            /*stroke-width: 2px;*/
+            /*display: none;*/
+        /*}*/
+
+        path.cell {
+            fill: none;
+            pointer-events: all;
+        }
+
+        circle {
+            /*fill: steelblue;*/
+            fill-opacity: .8;
+            stroke: #fff;
+        }
+
+        #cells.voronoi path.cell {
+            stroke: brown;
+        }
+
+        #cells g:hover path.arc {
+            display: inherit;
+        }
+        h2 span{
+            color:#ccc;
+        }
+
+
+
+    </style>
+</head>
+<body>
+<h2>
+    <span>shopname</span>
+</h2>
+<!--<div style="position:absolute;bottom:0;font-size:18px;">-->
+    <!--<input type="checkbox" id="voronoi"> <label for="voronoi">show Voronoi</label>-->
+<!--</div>-->
+<div style="position:fixed;bottom:0;font-size:18px;">
+<svg width="500px">
+    <!--<defs>-->
+        <!--<linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">-->
+            <!--<stop offset="0%" style="stop-color:#e7e1ef;stop-opacity:1" />-->
+            <!--<stop offset="25%" style="stop-color:#fcc5c0;stop-opacity:1" />-->
+            <!--<stop offset="50%" style="stop-color:#f768a1;stop-opacity:1" />-->
+            <!--<stop offset="75%" style="stop-color:#ae017e;stop-opacity:1" />-->
+            <!--<stop offset="100%" style="stop-color:#67001f;stop-opacity:1" />-->
+        <!--</linearGradient>-->
+    <!--</defs>-->
+    <!--<rect  x="0" y="0" height="10" width="10" fill="#ff7f0e"></rect><text  x="15" y="15">商超生鲜</text>-->
+    <!--<rect  x="100" y="0" height="10" width="10" fill="#1f77b4"></rect><text  x="115" y="15">烧烤炸鸡</text>-->
+    <!--<rect  x="200" y="0" height="10" width="10" fill="#2ca02c"></rect><text  x="215" y="15">甜点饮品</text>-->
+    <!--<rect  x="300" y="0" height="10" width="10" fill="#d62728"></rect><text  x="315" y="15">鲜花</text>-->
+    <!--<rect  x="0" y="20" height="10" width="10" fill="#8c564b"></rect><text  x="15" y="35">异国料理</text>-->
+    <!--<rect  x="100" y="20" height="10" width="10" fill="#9467bd"></rect><text  x="115" y="35">无辣不欢</text>-->
+    <!--<rect  x="200" y="20" height="10" width="10" fill="#48D1CC"></rect><text  x="215" y="35">暖胃粉面</text>-->
+    <!--<rect  x="300" y="20" height="10" width="10" fill="#121212"></rect><text  x="315" y="35">汉堡披萨</text>-->
+    <!--<rect  x="300" y="20" height="10" width="10" fill="#i121212"></rect><text  x="315" y="35">汉堡披萨</text>-->
+    <!--<rect  x="0" y="60" height="10" width="300" rx="10" ry="10" fill="url(#grad1)" ></rect><text  x="315" y="70">用户重叠程度</text>-->
+
+</svg>
+</div>
+
+<script type="text/javascript" src="../js/d3_v3/d3_v1.js"></script>
+<script type="text/javascript" src="../js/d3_v3/d3.csv.js"></script>
+<script type="text/javascript" src="../js/d3_v3/d3.geo.js"></script>
+<script type="text/javascript" src="../js/d3_v3/d3.geom.js"></script>
+<script type="text/javascript" src="../js/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../js/util/getservercontext.js"></script>
+<script type="text/javascript">
+
+    var w = 1280,
+        h = 960;
+
+    var projection = d3.geo.azimuthal()
+        .mode("equidistant")
+        .origin([121.4648,31.2891])
+        //40.0654569182409','longitude':'116.4033058302324 [121.4648,31.2891] [116.404, 39.915]
+        .scale(144000)//2589000
+        .translate([640, 360]);
+
+    var path = d3.geo.path()
+        .projection(projection);
+
+    var svg = d3.select("body").insert("svg:svg", "h2")
+        .attr("width", w)
+        .attr("height", h);
+
+    var states = svg.append("svg:g")
+        .attr("id", "states");
+
+    var circles = svg.append("svg:g")
+        .attr("id", "circles");
+
+    var cells = svg.append("svg:g")
+        .attr("id", "cells");
+
+    var color = [ "#e7e1ef", "#d4b9da", "#c994c7", "#df65b0", "#e7298a", "#ce1256", "#980043", "#67001f"];
+
+    d3.select("input[type=checkbox]").on("change", function() {
+        cells.classed("voronoi", this.checked);
+    });
+
+    d3.json("../data/map/shanghai.json", function(collection) {
+        states.selectAll("path")
+            .data(collection.features)
+            .enter().append("svg:path")
+            .attr("d", path)
+            .attr("fill","#404a59")
+            .append("svg:title")
+            .text(function(d){return d.properties.name})
+    });
+    $.ajax({
+        type: "post",
+        url: server_context+"/shopcompetition?shopid=66624941",
+        dataType: "json",
+        error: function(){console.log("erro");},
+        success:function(competitors) {
+            var linksByOrigin = {},//存储对于某一个店铺作为起始点，它的所有目的竞争店铺{source: origin, target: destination},{source: origin, target: destination}
+                countByAirport = {},//存储所有的店铺，以及其竞争强度
+                locationByAirport = {},  //存储所有店铺的地理信息
+                positions = [];//数组
+
+            var arc = d3.geo.greatArc()
+                .source(function(d) { return locationByAirport[d.source]; })
+                .target(function(d) { return locationByAirport[d.target]; });
+
+            competitors.forEach(function(competitor) {
+                var origin = competitor.origin,
+                    destination = competitor.destination,
+                    count=competitor.count,
+                    links = linksByOrigin[origin] || (linksByOrigin[origin] = []);//数组 linksByOrigin的每一个对象里有数组
+
+                links.push({source: origin, target: destination,value:count});
+                //计数，某店家的竞争店家个数
+                countByAirport[origin] = (countByAirport[origin] || 0) + 1;
+//           countByAirport[destination] = (countByAirport[destination] || 0) + 1;
+            });
+
+            $.ajax({
+                type: "post",
+                url: server_context + "/shopinfo",
+                dataType: "json",
+                error: function () {
+                    console.log("erro");
+                },
+                success: function (shops) {
+                    // Only consider shops with at least one competitor.
+                    shops = shops.filter(function (shop) {
+//                        if (countByAirport[shop.shopid]) {
+                            var location = [+shop.lng, +shop.lat];
+                            locationByAirport[shop.shopid] = location;
+                            positions.push(projection(location));
+                            return true;
+//                        }
+                    });
+
+                    // Compute the Voronoi diagram of shops' projected positions.
+                    var polygons = d3.geom.voronoi(positions);
+
+                    var g = cells.selectAll("g")
+                        .data(shops)
+                        .enter().append("svg:g");
+                    //异常处理，不知道为什么会是NAN，反正这里先不考虑 nan的时候，path返回null  因为competitor在shops里面没有信息
+                    g.append("svg:path")
+                        .attr("class", "cell")
+                        .attr("d", function (d, i) {
+                            return "M" + polygons[i].join("L") + "Z";//这是一个封闭路径，这是维诺图，不是线段
+                        })
+                        .on("mouseover", function (d, i) {
+                            d3.select("h2 span").text(d.shopname);
+                        });
+
+
+                    g.selectAll("path.arc")
+                        .data(function (d) {
+                            return linksByOrigin[d.shopid] || [];
+                        })
+                        .enter().append("svg:path")
+                        .attr("class", "arc")
+                        .attr("d", function (d) {
+                            //shop_competiotion的店铺，没有对应的经纬度 就会报错
+                            return path(arc(d));
+                        })//这里没有任何地理坐标信息，是怎么映射到地图上的;这是在
+                        .attr("stroke", function (d, i) {
+                            var k = Math.round((parseInt(d.value) - 9) / 34 * 9)
+                            return color[k];
+                        })
+
+                    circles.selectAll("circle")
+                        .data(shops)
+                        .enter().append("svg:circle")
+                        .attr("cx", function (d, i) {
+                            return positions[i][0];
+                        })
+                        .attr("cy", function (d, i) {
+                            return positions[i][1];
+                        })
+                        .attr("r", function(d){
+                            if(d.shopid == "66940137")
+                            {
+                                return 10;
+                            }
+                            else{
+                                return 2;
+                            }
+                        })
+                        .attr("fill",function(d){
+                            if(d.shopid == "66940137")
+                            {
+                                return "#ddb926";
+                            }
+                            else{
+                                 return "#fb767b"
+                            }
+                        })
+//                        .sort(function (a, b) {
+//                            return countByAirport[b.shopid] - countByAirport[a.shopid];
+//                        });
+                }
+            });
+        }
+    });
+
+
+
+
+</script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0，minimum-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="../bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        div{
+            border:1px solid #666;
+        }
+        ul{
+            border:1px solid #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row"  >
+        <div  class="col-md-4"id="right" >
+            <div class="row" style="height: 100px ">
+                <div class="col-md-12">
+                    <div class="row" >
+                        <div class="col-md-6">
+                            <ul class="nav nav-pills"  >
+                                <li class="dropdown all-camera-dropdown">
+                                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                        ------地区-----
+                                        <b class="caret"></b>
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li data-filter-camera-type="上海"><a data-toggle="tab" href="#">HTML5</a></li>
+                                        <li data-filter-camera-type="北京"><a data-toggle="tab" href="#">PHP</a></li>
+                                        <li data-filter-camera-type="深圳"><a data-toggle="tab" href="#">MySQL</a></li>
+                                        <li data-filter-camera-type="江苏"><a data-toggle="tab" href="#">JavaScript</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="nav nav-pills">
+                                <li class="dropdown all-camera-dropdown">
+                                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                        ------行业-----
+                                        <b class="caret"></b>
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li data-filter-camera-type="奶茶"><a data-toggle="tab" href="#">HTML5</a></li>
+                                        <li data-filter-camera-type="烧烤"><a data-toggle="tab" href="#">PHP</a></li>
+                                        <li data-filter-camera-type="蛋糕"><a data-toggle="tab" href="#">MySQL</a></li>
+                                        <li data-filter-camera-type="鲜花"><a data-toggle="tab" href="#">JavaScript</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-md-offset-6" >
+                        <input type="text" name="origin" id = "origin"  >
+                        <input type = "button" onclick = "search()" value = "search">
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="height: 650px">
+                <div class="col-md-12" id="right-scatter" style="height:100%;">
+
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                </div>
+            </div>
+        </div>
+        <div  class="col-md-8" id="left"  >
+            <div class="row"  id="left-up" style="height:1150px">
+                <div class="col-md-12">
+                    <div class="row" style="height:750px" >
+                        <div class="col-md-12" id="left-up-map" style="height:100%;">
+                            <img>
+                        </div>
+                    </div>
+                    <div class="row" style="height:400px" >
+                        <div class="col-md-12" id="left-up-time" style="height:100%;">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row" id="left-down" style="height:400px">
+                <div class="col-md-12">
+                    <div class="row" >
+                        <div class="col-md-4" id="left-down-lay1">
+
+                        </div>
+                        <div class="col-md-4">
+                        </div>
+                        <div class="col-md-4">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<script type="text/javascript" src="../js/echarts/echarts-all-3.js"></script>
+<script type="text/javascript" src="../js/echarts-stat/ecStat.min.js"></script>
+<script type="text/javascript" src="../js/echarts/extension/dataTool.min.js"></script>
+<script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/map/js/china.js"></script>
+<script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/map/js/world.js"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=ZUONbpqGBsYGXNIYHicvbAbM"></script>
+<script type="text/javascript" src="../js/echarts/extension/bmap.min.js"></script>
+
+<script type="text/javascript" src="../js/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../bootstrap/3.3.7/js/bootstrap-dropdown.js"></script>
+<script type="text/javascript" src="../js/d3_v4/d3.js"></script>
+<script type="text/javascript" src="../js/util/getservercontext.js"></script>
+<script type="text/javascript" src="../js/util/objectToDate.js"></script>
+<script type="text/javascript" src="../js/public/main.js"></script>
+<!-- for left-down-lay1.js-->
+<script type="text/javascript" src="../js/takeaway/fillCircleColor.js"></script>
+<script type="text/javascript" src="../js/public/right-up-map.js"></script>
+<script type="text/javascript" src="../js/public/right-up-time.js"></script>
+<script type="text/javascript" src="../js/public/right-down-lay.js"></script>
+<script type="text/javascript" src="../js/public/left-scatter.js"></script>
+
+
+</body>
+</html>

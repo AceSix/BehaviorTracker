@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        #container{
+            padding : 40px;
+        }
+        #punchcard{
+            padding : 20px ;
+        }
+    </style>
+</head>
+<body>
+
+<div id="container" >
+    <div>
+        <svg width="40"  height = "40" transform="translate(0,15)"><g ><circle r="10" cx="20" cy = "20" fill="#af6188" ></circle></g></svg>
+        <input type="text" name="origin" id = "origin"  >
+    </div>
+    <div>
+        <svg width="40"  height = "40" transform="translate(0,15)"><g ><circle r="10" cx="20" cy = "20" fill="#2f363d" ></circle></g></svg>
+        <input type="text" name="destination"  id = "destination">
+        <input type = "button" onclick = "search()" value = "search">
+    </div>
+  <div id="punchcard" ></div>
+
+</div>
+<script src="../js/d3_v4/d3.js"></script>
+<script type="text/javascript" src="../js/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../js/util/getservercontext.js"></script>
+<script>
+    function drawSVG(){
+        var width = 1000 , height = 1000 ;
+        var svg=d3.select("#punchcard").append("svg")
+            .attr("width",width)
+            .attr("height",height)
+            .attr("id","pic")
+    }
+   function search(){
+//      svg clear
+       document.getElementById('punchcard').innerHTML = '';
+       drawSVG();
+       var origin = $("#origin").val();
+        var destination = $("#destination").val();
+        $.ajax({
+            type: "post",
+            url: server_context + "/discovery?params=" + [origin,destination] ,
+            dataType: "json",
+            error: function () {
+                console.log("erro");
+            },
+            success: function (rawdata) {
+                console.log( "success" );
+                drawPic(rawdata,origin,destination);
+            }
+        });
+   }
+
+    function drawPic(data,origin,destination){
+        var svg = d3.select("#pic").append("g");
+        var convertData = function( data ){
+            var res= [] ;
+            var shoprecord = [];
+            var len = 1;
+            for (var i = 0 ;i < data.length ; i++){
+                if( res.length == 0 || (res.length !=0 && res[res.length-1].username != data[i].username))
+                {
+                    if(res.length != 0 ){
+//                       深复制
+                        if(shoprecord.length < 3){
+                            res.pop();
+                        }else{
+                            res[res.length-1].shoprecord = shoprecord.slice(0);
+                        }
+                    }
+//                    清空shoprecord里的数据
+                    if( len < shoprecord.length ){
+                        len = shoprecord.length ;
+                    }
+                    shoprecord.splice(0,shoprecord.length);
+                    res.push({
+                        username: data[i].username ,
+                        shoprecord : shoprecord,
+                    })
+                }
+                shoprecord.push({
+                    shopid : data[i].shopid,
+                    shopname : data[i].shopname
+                });
+            }
+            return [res , len];
+        }
+
+        var res = convertData(data);
+        var convertedData = res[0] ;
+        var len = res[1] ;
+//        order users by their shoprecord
+        var jlen = 0 ;
+        for( var i = 0 ; i < len ; i++ ){
+            var mark = "";
+            var flag = 0;
+            if( i == 0 ) { jlen = convertedData.length; }
+            var jjlen =  jlen;
+//            直接插入排序的算法思想
+            for( var j = 0 ; j < jjlen ; j++) {
+//                fill shoprecord with ""
+                var slen = convertedData[j].shoprecord.length;
+                if( slen < len ) {
+                    for( var m = 0 ; m <len-slen ; m++ ){
+                        convertedData[j].shoprecord.push({shopid : "" ,shopname :""});
+                    }
+                }
+                if(convertedData[j].shoprecord[i].shopid == origin ){
+                    flag = j-1 ;
+                    mark = JSON.stringify(convertedData[j]);
+                    while( flag>=0 && convertedData[flag].shoprecord[i].shopid == destination ){
+                        convertedData[flag+1] = JSON.parse(JSON.stringify(convertedData[flag]));
+                        flag--;
+                    }
+                    convertedData[flag+1] = JSON.parse(mark);
+                    jlen = flag+2 ;
+                }
+            }
+        }
+        var arc = 360 / convertedData.length ;
+        for ( var i = 0 ; i <convertedData.length ; i++ ){
+            svg.append("g")
+                .selectAll("circle")
+                .data(convertedData[i].shoprecord)
+                .enter()
+                .append("circle")
+                .attr("r",10)
+                .attr("cx",function (d,j){
+                    return 30*(j+1);
+                })
+                .attr("cy",20)
+                .style("fill",function(d){
+                    if(d.shopid == destination) {
+                        return "#2f363d";
+                    }else{
+                        if(d.shopid == origin){
+                            return "#af6188";
+                        }
+                    } })
+                .style("opacity",function(d){
+                    if(d.shopid == "")  return 0;
+                })
+                .attr("transform","translate(0,"+ 20*i+ ")")
+//                .attr("transform",function(d,j){
+//                    var x = 30*(j+1)*(-Math.cos(arc*i)) ;
+//                    var y = 30*(j+1)*Math.sin(arc*i);
+//                    return "translate(" + x + "," + y + ")";
+//                })
+        }
+    }
+
+
+
+
+
+</script>
+
+</body>
+</html>

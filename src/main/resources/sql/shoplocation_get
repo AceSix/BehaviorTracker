@@ -1,0 +1,3 @@
+SELECT a.shopid,a.`mtWmPoiId`,a.shopname,a.cateid,a.catename,b.latitude,b.longitude
+FROM shoplocation b INNER JOIN shopinfo a
+ON b.shopid=a.shopid

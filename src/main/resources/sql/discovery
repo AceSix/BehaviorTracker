@@ -1,0 +1,3 @@
+SELECT username , DAYOFWEEK(`commentTime`) , `commentTime` , shopid , shopname FROM shopcomment WHERE username IN (SELECT DISTINCT username  FROM `shopcomment`
+WHERE userName IN  (SELECT userName FROM `shopcomment` WHERE shopid ='10011311' ) AND shopid ="58480512"
+AND userName <> '匿名用户') AND shopid IN ("58480512","10011311") ORDER BY username,commentTime
