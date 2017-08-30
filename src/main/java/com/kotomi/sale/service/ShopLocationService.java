@@ -32,7 +32,7 @@ public class ShopLocationService {
         return DatabaseHelper.executeSqlFile(sqlpath);
     }
     public List<Map<String,Object>> getCompetitiorLocation(String shopid){
-        String sql = "SELECT a.origin , a.destination,c.shopname ,c.cate ,a.num AS count ,b.latitude ,b.longitude \n" +
+        String sql = "SELECT a.origin , a.destination,c.shopname ,c.cate ,a.num AS num ,b.latitude ,b.longitude \n" +
                 "                FROM competition a \n" +
                 "                INNER JOIN shoplocation b ON a.destination = b.shopid \n" +
                 "                INNER JOIN shopseg c ON a.destination = c.shopid \n" +
