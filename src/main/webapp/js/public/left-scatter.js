@@ -1,6 +1,6 @@
 
 
-function drawScatter( data , shopid ){
+function drawScatter( data , origin ,map){
     //map of data
     var mapData = d3.map(data,function(d){return d.destination});
 
@@ -138,8 +138,20 @@ function drawScatter( data , shopid ){
             .remove();
     }
 
+    var clickCircle = function(){
+        console.log("click circle")
+        var circle = d3.select(this);
+        var circleParam = mapData.get(circle.attr("id"));
+        map.setCenter({
+            lat : circleParam.latitude,
+            lng : circleParam.longitude
+        });
+
+    }
+
     circles.on("mouseover" , mouseOn)
     circles.on("mouseout" , mouseOff);
+    circles.on("click" , clickCircle);
 
 
 }

@@ -1,7 +1,10 @@
 package com.kotomi.sale.controller;
 
+import com.kotomi.sale.model.ShopLocation;
+import com.kotomi.sale.service.ShopInfoService;
 import com.kotomi.sale.service.ShopLocationService;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -21,10 +24,10 @@ import java.util.Map;
  */
 @WebServlet("/shopinfo")
 public class ShopInfoServlet  extends HttpServlet {
-    private ShopLocationService shopLocationService;
+    private ShopInfoService shopInfoService;
     @Override
     public void init()throws ServletException {
-        shopLocationService =new ShopLocationService();
+        shopInfoService = new ShopInfoService();
     }
 
     @Override
@@ -32,15 +35,15 @@ public class ShopInfoServlet  extends HttpServlet {
         //防止前台代码不识别中文
         resp.setContentType("text/html;charset=utf-8");
         resp.setCharacterEncoding("utf-8");
-        String shops = req.getParameter("shops");
-        System.out.println( shops );
+        String shopid = req.getParameter("shopid");
         //sql文件的注意大小写
-        List<Map<String,Object>> shopLocationList = shopLocationService.getAllLocation("sql/shopinfo");
-
-        JSONArray jsonList = JSONArray.fromObject(shopLocationList);
+        List<Map<String,Object>> shopInfoList =shopInfoService.getShopInfo(shopid);
+        if(shopInfoList.size() != 1) return;
+        Map<String,Object> shopinfo = shopInfoList.get(0);
+        JSONObject jsonObject = JSONObject.fromObject(shopinfo);
         PrintWriter out= null;
         out = resp.getWriter();
-        out.print(jsonList);
+        out.print(jsonObject);
         out.flush();
         out.close();
     }

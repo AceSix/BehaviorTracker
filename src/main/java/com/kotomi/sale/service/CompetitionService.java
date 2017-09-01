@@ -52,8 +52,9 @@ public class CompetitionService {
 
     }
     public List<Map<String,Object>> getCompetitionList(String shopid){
-        String  sql = "select a.destination, a.origin ,a.num as num ,a.distance *10000 AS distance ,b.cate ,b.shopname from competition a inner join shopseg b" +
-                " on a.destination = b.shopid where a.origin = " + shopid + " and a.num > 1" ;
+        String  sql = "SELECT a.destination, a.origin ,a.num AS num ,a.distance *10000 AS distance ,b.cate ,b.shopname , c.latitude ,c.longitude\n" +
+        " FROM competition a INNER JOIN shopseg b ON a.destination = b.shopid \n" +
+        " INNER JOIN shoplocation c ON a.destination = c.shopid  WHERE a.origin = "+ shopid +" AND a.num > 1";
         return DatabaseHelper.executeQuery(sql);
     }
 //     for shopcompetition version1.0

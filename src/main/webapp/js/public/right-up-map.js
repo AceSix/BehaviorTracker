@@ -1,12 +1,7 @@
 
 
-function drawmap(data){
-    // Create the Google Map…
-    var map = new google.maps.Map(d3.select("#right-up-map").node(), {
-        zoom: 15,
-        center: new google.maps.LatLng(31.237015,121.5025),
-        mapTypeId: google.maps.MapTypeId.ROADMAP
-    });
+function drawmap(data, map, myCenter){
+
 
     var overlay = new google.maps.OverlayView();
 
@@ -19,7 +14,7 @@ function drawmap(data){
         // We could use a single SVG, but what size would it have?
         overlay.draw = function() {
             var projection = this.getProjection(),
-                padding = 10;
+                padding = 20;
 
             var marker = layer.selectAll("svg")
                 .data(data)
@@ -39,7 +34,8 @@ function drawmap(data){
                 .attr("x", padding + 7)
                 .attr("y", padding)
                 .attr("dy", ".31em")
-                .text(function(d) { return d.key; });
+                .text(function(d) { return d.shopid; });
+
 
             function transform(d) {
                 d = new google.maps.LatLng(d.latitude, d.longitude);
@@ -53,4 +49,10 @@ function drawmap(data){
 
     // Bind our overlay to the map…
     overlay.setMap(map);
+
+    var marker=new google.maps.Marker({
+        position:myCenter,
+    });
+
+    marker.setMap(map);
 };
