@@ -1,0 +1,139 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div id = "marketpie" style="width: 400px;height: 400px;"></div>
+
+<script src = "../js/d3_v4/d3.js"></script>
+<script src = "../js/d3_v4/d3.min.js"></script>
+<script src = "../js/jquery/jquery.min.js"></script>
+<script src = "../js/util/jsonUtil.js"></script>
+<script src = "../js/util/getservercontext.js"></script>
+<script >
+    var width = $("#marketpie").width(),
+        height = $("#marketpie").height() ;
+    var origin = "65480779";
+    var selectshopid = "27032645";
+
+    $.ajax({
+        type: "post",
+        url: server_context + "/shopmarket?params=" + origin+","+selectshopid,
+        dataType: "json",
+        error: function () {
+            console.log("search erro");
+        },
+        success: function (data) {
+            console.log("get market info success");
+
+//            var data = {'totalorder':[{'username' : "pp", 'totalorder': 22 },{'username' : "ps", 'totalorder': 2}],
+//                'marketorder':[{'username' : "pp", 'marketorder': 12 },{'username' : "ps", 'marketorder': 1}],
+//            "shoporder":[{"username" : "pp", "shopid" : "A", "shoporder": 1},{"username" : "pp", "shopid" : "B", "shoporder": 2},{"username" : "ps", "shopid" : "A", "shoporder": 2},{"username" : "ps", "shopid" : "B", "shoporder": 1},]}
+            var marketorder = data.marketorder;
+            var shoporder = data.shoporder;
+            var totalorder = data.totalorder;
+            var marketSvg = d3.select("#marketpie").append("svg")
+                .attr("width",width)
+                .attr("height",height);
+            var margin = 30;
+
+
+            var marketorderMax= d3.max(convertJson(marketorder , "marketorder"));
+            var totalorderMax = d3.max(convertJson(totalorder , "totalorder"));
+
+            var convertShoporder=function(data){
+                var res = [];
+                for(var i = 0; i < shoporder.length; i++){
+                     res.push({
+                         "username" : shoporder[i].username,
+                         "A" : shoporder[i].shoporder,
+                         "B" : shoporder[i+1].shoporder
+                     });
+                     i += 1;
+                }
+                res = d3.map(res,function(d){return d.username;})
+                return res;
+            }
+
+            var convertData = function(data){
+                var res = [];
+                var shoporder1 = convertShoporder(shoporder);
+                for(var i = 0 ; i < marketorder.length ; i++){
+                    var username = marketorder[i].username;
+                    for(var j = 0 ;j < totalorder.length; j++) {
+                        if ( username == totalorder[j].username) {
+                            var temp = shoporder1.get(username);
+                            res.push({
+                                "username":marketorder[i].username,
+                                "mx":marketorder[i].marketorder,
+                                "my":totalorder[j].totalorder,
+                                "share":[temp.A, temp.B] });
+                        }
+                    }
+                }
+                return res;
+            }
+
+            //Asix
+            var gAsix = marketSvg.append("g");
+
+            var x = d3.scaleLinear()
+                .domain( [0, marketorderMax] )
+                .range([margin , width-margin]);
+
+            var y = d3.scaleLinear()
+                .domain( [0, totalorderMax] )
+                .range([height-margin , margin]);
+
+            var xAxis = d3.axisBottom(x)
+                .ticks(6);
+            var yAxis = d3.axisLeft(y)
+                .ticks(8);
+
+            gAsix.append("g")
+                .attr("transform", "translate(0 ,"+ (height-margin)+")")
+                .call(xAxis);
+
+            gAsix.append("g")
+                .attr("transform", "translate("+margin+",0)")
+                .call(yAxis);
+
+
+            //shopshare pie
+            var pie = d3.pie()
+            var arc = d3.arc()
+                .innerRadius(0)
+                .padAngle(0.03);
+            var gPie =marketSvg.append("g").selectAll(".shopPie")
+                    .data(convertData(data))
+                    .enter()
+                    .append("g")
+                    .attr("class", "shopPie")
+                    .attr("transform",function(d){return "translate("+x(d.mx)+","+y(d.my)+")" ;})
+                    .each(multiple);
+
+            function multiple(d){
+                var radius = (15*d.mx)/marketorderMax+5;
+                d3.select(this)
+                    .selectAll(".shoparc")
+                    .data(function(d){return pie(d.share)})
+                    .enter()
+                    .append("path")
+                    .attr("d",arc.outerRadius(radius))
+                    .style("stroke" ,"black")
+                    .style("fill", function(d,i){
+                        if(i == 0){
+                            return "black";
+                        }else{
+                            return "white";
+                        }
+                    })
+            }
+
+        }
+    })
+</script>
+</body>
+</html>
