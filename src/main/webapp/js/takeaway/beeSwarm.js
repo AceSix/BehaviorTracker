@@ -18,7 +18,7 @@ var x = d3.scaleLinear()
 var gbeeswarm = svgbeeswarm.append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-d3.csv("../data/beeswarm.csv", type, function(error, data) {
+d3.csv("../data/beeSwarm.csv", type, function(error, data) {
     if (error) throw error;
     // console.log("csv的data",data);
     x.domain(d3.extent(data, function(d) { return d.value; }));
@@ -57,7 +57,7 @@ d3.csv("../data/beeswarm.csv", type, function(error, data) {
 
     cell.append("path")
         .attr("d", function(d) { return "M" + d.join("L") + "Z"; });
- //title:对 svgbeeswarm 中的元素的纯文本描述 - 并不作为图形的一部分来显示。用户代理会将其显示为工具提示
+ //title:对 svgBeeSwarm 中的元素的纯文本描述 - 并不作为图形的一部分来显示。用户代理会将其显示为工具提示
     cell.append("title")
         .text(function(d) { return d.data.id + "\n偏好度：" + formatValue(d.data.value)
             +"\n影响度：" + (d.data.followers); });
