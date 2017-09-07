@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        .foreground path {
+            fill: none;
+            stroke-opacity: .5;
+            stroke-width: 4px;
+        }
+
+        .foreground path.fade {
+            stroke: #000;
+            stroke-opacity: .05;
+        }
+
+        .nochange {
+            stroke: #008;
+        }
+
+        .origin {
+            stroke: red;
+        }
+
+        .destination {
+            stroke: green;
+        }
+    </style>
+    <title>Title</title>
+</head>
+<body>
+<div id = "customerLoyal" style="width: 600px;height: 200px;"></div>
+<script src = "../js/d3_v4/d3.js"></script>
+<script src = "../js/d3_v4/d3.js"></script>
+<script src = "../js/jquery/jquery.min.js"></script>
+<script src = "../js/util/getservercontext.js"></script>
+<script>
+    var width = $("#customerLoyal").width(),
+        height = $("#customerLoyal").height(),
+        margin = 20;
+    var origin = "65480779",  //vs 65480779
+        destination = "27032645"
+
+
+//    var origin = "A",  //vs 65480779
+//    destination = "B"  //"27032645"
+
+//    var data = [{"username": "pp", "shopid": "A", "commentTime": 1},{"username": "pp", "shopid": "A", "commentTime": 2},
+//        {"username": "pp", "shopid": "B", "commentTime": 4},{"username": "pp", "shopid": "A", "commentTime": 1},
+//        {"username": "ps", "shopid": "B", "commentTime": 1},{"username": "ps", "shopid": "A", "commentTime": 3},
+//        {"username": "ps", "shopid": "A", "commentTime": 4},{"username": "ps", "shopid": "A", "commentTime": 5},
+//        {"username": "ps", "shopid": "B", "commentTime": 6},{"username": "ps", "shopid": "B", "commentTime": 7}]
+//
+//    drawLoyal(data);
+
+    $.ajax({
+        type: "post",
+        url: server_context + "/customerLoyal?params=" + [origin,destination] ,
+        dataType: "json",
+        error: function () {
+            console.log("erro");
+        },
+        success: function (data) {
+            console.log( "success" );
+            drawLoyal(data);
+        }
+    });
+
+
+    function drawLoyal(data){
+        var svgLoyal = d3.select("#customerLoyal")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        var convertData = function (data) {
+            var res = [];
+            var changeRecord = [];
+            var num = 0;
+            var maxNum = 0;
+            for (var i = 0; i < data.length; i++) {
+                if (res.length == 0 || (res.length != 0 && res[res.length - 1].username != data[i].username)) {
+                    if (res.length != 0) {
+                        //most orders as axis length
+                        if (maxNum < num) {
+                            maxNum = num;
+                        }
+                        changeRecord.push({
+                            "shopid": "nochange",
+                            "changeDate": data[i-1].commentTime,
+                            "historyOrder": num
+                        })
+                        //深复制
+                        res[res.length - 1].changeRecord = changeRecord.slice(0);
+                        // clear changeRecord
+                        changeRecord.splice(0, changeRecord.length);
+                        num = 0;
+                    }
+
+                    //initial first record
+                    changeRecord.push({
+                        "shopid": data[i].shopid,
+                        "changeDate": data[i].commentTime,
+                        "historyOrder": num
+                    })
+                    //initial userInfo
+                    res.push({
+                        "username": data[i].username,
+                        "changeRecord": changeRecord,
+                    })
+                }else {
+                    if ((i > 0 && data[i - 1].shopid != data[i].shopid)) {
+                        changeRecord.push({
+                            "shopid": data[i].shopid,
+                            "changeDate": data[i].commentTime,
+                            "historyOrder": num
+                        })
+                    }
+                }
+                num++;
+            }
+
+            res[res.length - 1].changeRecord.push({
+                "shopid": "nochange",
+                "changeDate": data[data.length-1].commentTime,
+                "historyOrder": num
+            })
+            //most orders as axis length
+            if (maxNum < num) {
+                maxNum = num;
+            }
+            return [res, maxNum];
+        }
+
+        console.log(convertData(data));
+
+        var loyalData = convertData(data);
+
+        //scale
+        var y = d3.scalePoint().domain([origin, destination]).range([margin, height - margin]),
+            x = d3.scaleLinear()
+                .domain([0, loyalData[1]])
+                .range([margin, width - margin]);
+
+        var g = svgLoyal.selectAll(".shop")
+            .data([origin , destination])
+            .enter().append("svg:g")
+            .attr("class", "shop")
+            .attr("transform", function(d) { return "translate(0 ," + y(d) + ")"; });
+
+        // Add an axis and title.
+        g.append("svg:g")
+            .attr("class", "axis")
+            .each(function(d) { d3.select(this).call(d3.axisBottom(x)); })
+            .append("svg:text")
+            .attr("text-anchor", "right")
+            .attr("x", width-margin*2 )
+            .attr("dy",-5)
+            .style("fill", "#000")
+            .text(function(d) {return d});
+
+
+        // Add foreground lines.
+        var foreground = svgLoyal.append("svg:g")
+            .attr("class","foreline")
+            .selectAll(".foreground")
+            .data(loyalData[0])
+            .enter().append("svg:g")
+            .attr("class", "foreground")
+            .attr("id", function(d) { return d.username; })
+            .selectAll("path")
+            .data(function(d){
+                var changeRecord = [];
+                for(var i = 0 ; i < d.changeRecord.length-1 ; i++){
+                    changeRecord.push([d.changeRecord[i], d.changeRecord[i+1]]);
+                }
+                return changeRecord;
+            })
+            .enter().append("svg:path")
+            .attr("class",function(d){
+                    if (d[0].shopid == origin) {
+                        return "origin";
+                    }
+                    if (d[0].shopid == destination) {
+                        return "destination";
+                    }
+            })
+            .attr("d", path);
+
+
+        // Returns the path for a given data point.
+        function path(d) {
+            return d3.line()(d.map(function(p, i){
+                if(p.shopid == "nochange") { p.shopid = d[i-1].shopid; }
+                return [x(p.historyOrder), y(p.shopid)];
+            }))
+        }
+
+        /** 交互 显示单个用户轨迹
+         * //start point
+         var startCircle = svgLoyal.append("svg:g")
+         .attr("class", "startCircle")
+         .selectAll("cricle")
+         .data(loyalData[0])
+         .enter().append("circle")
+         .attr("id", function(d){
+                return d.username;
+            })
+         .attr("cx",function(d){
+               return x(d.changeRecord[0].historyOrder);
+            })
+         .attr("cy",function(d){
+                return y(d.changeRecord[0].shopid)
+            })
+         .attr("r", 5)
+         .style("fill","yellow")
+
+         var mouseOver = function(){
+            var circle = d3.select(this);
+            var circleID = circle.attr("id")
+            d3.selectAll(".foreground").each(
+                function (d) {
+                    if (d.username != circleID) {
+                        d3.select("#" + d.username).selectAll("path").classed("fade", true)
+                    }
+                }
+            )
+
+        }
+
+         var mouseOut = function(){
+            d3.selectAll(".foreground").selectAll("path").classed("fade", false)
+        }
+         startCircle.on("mouseover", mouseOver);
+         startCircle.on("mouseout", mouseOut);*/
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+
+</body>
+</html>
