@@ -2,7 +2,16 @@
 
 function drawmap(data, map, myCenter){
 
-
+    var maxorder = Number.MIN_VALUE;
+    var minorder = Number.MAX_VALUE;
+    data.forEach(function(d){
+        if(maxorder < d.orders){
+            maxorder = d.orders;
+        }
+        if(minorder > d.orders){
+            minorder = d.orders;
+        }
+    })
     var overlay = new google.maps.OverlayView();
 
     // Add the container when the overlay is added to the map.
@@ -25,16 +34,12 @@ function drawmap(data, map, myCenter){
 
             // Add a circle.
             marker.append("circle")
-                .attr("r", function(d){ return d.num*0.5 })
+                .filter(function(d){ return d.shopid != origin;})
+                .attr("r", function(d){
+
+                    return (20-4)/(maxorder-minorder)*(d.orders - minorder)+4 ;})
                 .attr("cx", padding)
                 .attr("cy", padding);
-
-            // Add a label.
-            marker.append("text")
-                .attr("x", padding + 7)
-                .attr("y", padding)
-                .attr("dy", ".31em")
-                .text(function(d) { return d.shopid; });
 
 
             function transform(d) {
@@ -50,6 +55,7 @@ function drawmap(data, map, myCenter){
     // Bind our overlay to the map…
     overlay.setMap(map);
 
+    //set up a marker
     var marker=new google.maps.Marker({
         position:myCenter,
     });
