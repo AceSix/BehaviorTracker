@@ -1,64 +1,129 @@
+var widthS = $("#shop_mapscatter").width();
+var heightS = 509;
+var margin  = 20;
+
+var origin = 13837617;
+//adjust map
+var mapscale = 18400;
+var mapcenter = [121.4648, 31.2891] // [lng, lat]
+
+drawmap(mapscale, mapcenter);
+
+function drawmap(mapscale, mapcenter){
+    //version1 absolute location
+    //version2 relative location
 
 
-function drawmap(data, map, myCenter){
+    var projection = d3.geo.azimuthal()
+        .mode("equidistant")
+        .origin(mapcenter)
+        //40.0654569182409','longitude':'116.4033058302324 [121.4648,31.2891] [116.404, 39.915]
+        .scale(mapscale)//2589000
+        .translate([170, 180]);
 
-    var maxorder = Number.MIN_VALUE;
-    var minorder = Number.MAX_VALUE;
-    data.forEach(function(d){
-        if(maxorder < d.orders){
-            maxorder = d.orders;
-        }
-        if(minorder > d.orders){
-            minorder = d.orders;
+    var path = d3.geo.path()
+        .projection(projection);
+
+    d3.select("#shop_mapscatter").select("svg").remove();
+    var svg = d3.select("#shop_mapscatter").append("svg")
+        .attr("width", widthS - margin)
+        .attr("height", heightS - margin * 1.8);
+
+    var areas = svg.append("svg:g")
+        .attr("id", "areas");
+
+    d3.json("../data/map/shanghai.json", function(collection) {
+        areas.selectAll("path")
+            .data(collection.features)
+            .enter().append("svg:path")
+            .attr("class","shopmap")
+            .attr("d", path)
+            .attr("fill", "#00688B")
+            .append("svg:title")
+            .text(function (d) {
+                return d.properties.name
+            })
+    })
+
+    //add shops
+    $.ajax({
+        type: "post",
+        url: server_context+"/competitor?shopid=" + origin,
+        dataType: "json",
+        error: function(){console.log("erro");},
+        success: function(competitors){
+
+            var center = svg.append("svg:g")
+                .attr("id", "center");
+            var circles = svg.append("svg:g")
+                .attr("id", "competitor");
+
+            var max = 0;
+            competitors.forEach(function(d){
+                if(d.destination == origin)  return;
+               if(d.num > max ){
+                   max = d.num;
+               }
+           })
+
+
+
+            competitors.forEach(function(d){
+
+                if(d.destination == origin) {
+                    center.attr("transform", "translate(" + projection([d.lng,d.lat])[0] + "," + projection([d.lng,d.lat])[1] + ")")
+                        .append("polygon")
+                        .attr("id", d.destination)
+                        .attr("points","20,0 32,36 2,12 38,12 8,36")
+                        .style("fill", "red")
+                        .attr("stroke", "red")
+                        .on("click", onclick);
+
+                }else{
+                    circles.append("svg:circle")
+                        .attr("id", d.destination)
+                        .attr("class", "shop")
+                        .attr("cx", projection([d.lng,d.lat])[0])
+                        .attr("cy", projection([d.lng,d.lat])[1])
+                        .attr("r", 10 - 9 * (max - d.num) / (max - 1))
+
+                        .on("click", onclick);
+
+                }
+            })
+
+
+            function onclick(){
+                var shopid  = this.id;
+                competitors.forEach(function(d){
+                    if(d.destination == shopid){
+                        mapscale = mapscale * 5;
+                        console.log(mapscale);
+                        drawmap(mapscale, [d.lng ,d.lat] );
+                    }
+                })
+
+            }
         }
     })
-    var overlay = new google.maps.OverlayView();
 
-    // Add the container when the overlay is added to the map.
-    overlay.onAdd = function() {
-        var layer = d3.select(this.getPanes().overlayLayer).append("div")
-            .attr("class", "shops");
-
-        // Draw each marker as a separate SVG element.
-        // We could use a single SVG, but what size would it have?
-        overlay.draw = function() {
-            var projection = this.getProjection(),
-                padding = 20;
-
-            var marker = layer.selectAll("svg")
-                .data(data)
-                .each(transform) // update existing markers
-                .enter().append("svg")
-                .each(transform)
-                .attr("class", "marker");
-
-            // Add a circle.
-            marker.append("circle")
-                .filter(function(d){ return d.shopid != origin;})
-                .attr("r", function(d){
-
-                    return (20-4)/(maxorder-minorder)*(d.orders - minorder)+4 ;})
-                .attr("cx", padding)
-                .attr("cy", padding);
-
-
-            function transform(d) {
-                d = new google.maps.LatLng(d.latitude, d.longitude);
-                d = projection.fromLatLngToDivPixel(d);
-                return d3.select(this)
-                    .style("left", (d.x - padding) + "px")
-                    .style("top", (d.y - padding) + "px");
-            }
-        };
-    };
-
-    // Bind our overlay to the map…
-    overlay.setMap(map);
-
-    //set up a marker
-    var marker=new google.maps.Marker({
-        position:myCenter,
-    });
-
-    marker.setMap(map);
 };
+
+$(function() {
+    $("#zoomout").click(function(){
+        mapscale = 18400 ;
+        console.log(mapscale);
+       drawmap(mapscale, mapcenter);
+    });
+});
+
+
+$(function() {
+    $("#zoomin").click(function(){
+        mapscale = mapscale * 5;
+        console.log(mapscale);
+        drawmap(mapscale, mapcenter);
+    });
+});
+
+
